@@ -11,12 +11,27 @@ import java.util.concurrent.Executors
 
 /** Plain HttpURLConnection + org.json: no dependencies. Call off the UI thread. */
 object Net {
-    /** Photon and OSRM ask clients to identify themselves. */
-    private const val USER_AGENT = "FieroNav/0.1 (keypad navigation for a TCL Flip 2; personal use)"
+    /** Photon, OSRM and the OSM tile servers ask clients to identify themselves. */
+    const val USER_AGENT = "FieroNav/0.4 (keypad navigation; https://github.com/SuperFieroStatus/fiero-nav)"
 
     val io: ExecutorService = Executors.newFixedThreadPool(2)
 
     class HttpError(val code: Int, msg: String) : IOException(msg)
+
+    /** Raw GET (map tiles). Throws [HttpError] on non-2xx so callers can tell "forbidden" from "offline". */
+    fun getBytes(url: String, timeoutMs: Int = 8000): ByteArray {
+        val conn = URL(url).openConnection() as HttpURLConnection
+        try {
+            conn.connectTimeout = timeoutMs
+            conn.readTimeout = timeoutMs
+            conn.setRequestProperty("User-Agent", USER_AGENT)
+            val code = conn.responseCode
+            if (code !in 200..299) throw HttpError(code, "HTTP $code")
+            return conn.inputStream.use { it.readBytes() }
+        } finally {
+            conn.disconnect()
+        }
+    }
 
     fun getJson(url: String, timeoutMs: Int = 8000): JSONObject {
         var lastError: IOException? = null

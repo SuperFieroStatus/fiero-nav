@@ -132,7 +132,11 @@ class DestinationActivity : Activity(), KeyActionHandler {
                 if (routes.isEmpty() && !loading && list.size == 0) load()
                 else if (!loading) start(list.selectedIndex)
             }
-            KeyAction.SOFT_LEFT -> if (!repeat) PlaceOptions.show(this, place)
+            KeyAction.SOFT_LEFT -> if (!repeat) {
+                val route = routes.getOrNull(list.selectedIndex)
+                val extra = if (route != null) listOf("Show route on map" to { MapActivity.showPreview(this, route) }) else emptyList()
+                PlaceOptions.show(this, place, extra)
+            }
             // Swallow stray digits: unhandled ones open the system dialer on this phone.
             KeyAction.DIGIT, KeyAction.POUND -> Unit
             else -> return false

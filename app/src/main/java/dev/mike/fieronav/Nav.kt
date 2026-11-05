@@ -42,6 +42,11 @@ object Nav {
         /** Posted limit where you are, km/h (TomTom routes only). */
         val limitKmh: Int? = null,
         val trafficDelay: Double = 0.0,
+        /** Last GPS (or simulated) position and heading, for the route overview map. */
+        val position: LatLng? = null,
+        val bearing: Float? = null,
+        /** Route point you've reached (the overview dims the stretch before it). */
+        val routeIndex: Int = 0,
     )
 
     data class Upcoming(val step: Step, val distance: Double)
@@ -143,6 +148,9 @@ object Nav {
         val next = s.next ?: return
         say(prompt(next, s.distToNext), force = true)
     }
+
+    /** The route being guided (for the overview map). */
+    val currentRoute: Route? get() = route
 
     fun upcoming(): List<Upcoming> {
         val r = route ?: return emptyList()
@@ -416,6 +424,9 @@ object Nav {
             speedMps = lastFix?.takeIf { it.hasSpeed() && SystemClock.elapsedRealtime() - lastFixAt < 5000 }?.speed?.toDouble(),
             limitKmh = route?.speedLimitAt(segIndex),
             trafficDelay = route?.trafficDelay ?: 0.0,
+            position = lastFix?.let { LatLng(it.latitude, it.longitude) },
+            bearing = lastFix?.takeIf { it.hasBearing() && it.hasSpeed() && it.speed > 1.5f }?.bearing,
+            routeIndex = segIndex,
         )
         listeners.toList().forEach { it(snapshot) }
     }

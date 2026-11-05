@@ -181,7 +181,8 @@ class GuideActivity : Activity(), KeyActionHandler {
             KeyAction.SOFT_LEFT -> if (!repeat) options()
             KeyAction.BACK -> if (showingSteps) showSteps(false) else return false
             // Swallow stray digits: unhandled ones open the system dialer on this phone.
-            KeyAction.DIGIT, KeyAction.POUND -> Unit
+            KeyAction.DIGIT -> if (!repeat && key.digit == 0) MapActivity.showGuided(this) // 0 = route overview
+            KeyAction.POUND -> Unit // swallow: unhandled keys can open the dialer
             else -> return false
         }
         return true
@@ -191,6 +192,7 @@ class GuideActivity : Activity(), KeyActionHandler {
         val actions = listOf<Pair<String, () -> Unit>>(
             (if (Nav.snapshot.muted) "Voice on" else "Voice off") to { Nav.toggleMute() },
             "Upcoming turns" to { showSteps(true) },
+            "Route overview (0)" to { MapActivity.showGuided(this) },
             "Reroute now" to { Nav.reroute() },
             "Stop navigation" to { Nav.stop() },
         )

@@ -94,11 +94,16 @@ Prompts are held during calls (`LISTEN_CALL_STATE`, no permission at targetSdk 3
 for VoIP); the current instruction is repeated 1.5 s after the call ends. The key lives in app prefs, set via
 `--es tomtom_key` (deploy.ps1 sends `TOMTOM_API_KEY` from local.properties), so release APKs carry no key.
 
+**v0.4.0 (2026-11-05).** Route overview map (MapActivity): raster tiles (TomTom `map/1/tile/basic/night`
+with a key, falling back to OSM standard tiles on 401/403 or without a key), memory LRU (40 RGB_565 tiles) plus
+a 7-day disk cache, OSM-policy User-Agent, on-screen attribution. Draws the route (passed part dimmed), turn
+dots (zoom ≥ 12), destination, and your position arrow. Opened with `0` / Options on guidance, or
+Options → Show route on map on the preview (a route that hasn't started). Mercator math unit-tested.
+
 **Next (ideas, in order of value):**
 1. A real drive: GPS jitter at low speed, tunnels, prompt timing on highways, battery use.
 2. Fiero Launcher: show the next turn in the home screen's Now Playing line while guiding.
-3. Route overview map (secondary): a simple tile view, D-pad pan, zoom on 1/3.
-4. Speed limits without TomTom: the public OSRM server rejects `annotations=maxspeed` ("InvalidQuery").
+3. Speed limits without TomTom: the public OSRM server rejects `annotations=maxspeed` ("InvalidQuery").
 
 ## Phone findings
 
@@ -132,3 +137,12 @@ for VoIP); the current instruction is repeated 1.5 s after the call ends. The ke
 - Call handling is untested on a real call (the phone has no SIM yet).
 - GuideActivity is `singleTop`: a second debug start while guidance is open arrives in `onNewIntent`
   (previously ignored, the old drive kept going).
+
+### v0.4.0 (2026-11-05)
+
+- TomTom raster tiles (`/map/1/tile/basic/night/{z}/{x}/{y}.png?tileSize=256`) work with a key created for
+  routing (≈60 KB per tile); OSM standard tiles answer 200 with the Fiero Nav User-Agent.
+- A 240×266 view needs 4–6 tiles; RGB_565 halves the memory per tile. Redrawing the route every second
+  showed no visible lag in the simulated drive (not measured).
+- Tested on the phone: overview during a simulated drive (TomTom tiles), follow mode, zoom, pan; OSM tiles
+  with no key; preview map from the route preview.

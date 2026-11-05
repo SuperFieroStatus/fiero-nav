@@ -10,6 +10,7 @@ to pan. Spoken directions keep going with the phone closed.
   <img src="docs/screenshots/guide-1.png" width="240" alt="Guidance: turn left onto Broadway in 0.3 mi">
   <img src="docs/screenshots/guide-3.png" width="240" alt="Guidance: turn right onto Divisadero Street">
   <img src="docs/screenshots/guide-speed.png" width="240" alt="Guidance with TomTom: speed 38 mph in orange next to a 30 limit sign">
+  <img src="docs/screenshots/overview.png" width="240" alt="Route overview map of San Francisco with the route in orange">
   <img src="docs/screenshots/upcoming.png" width="240" alt="Upcoming turns list">
 </p>
 
@@ -21,6 +22,9 @@ to pan. Spoken directions keep going with the phone closed.
 - **Guidance:** big turn arrow, distance to the turn, the instruction, the turn after it when close, arrival
   time and what's left. Spoken prompts ("In half a mile, take exit 235 A on the right toward 15th Street"),
   automatic rerouting when you leave the route, and "You have arrived".
+- **Route overview map (secondary):** the whole route on a map, with your position, upcoming turns and the
+  destination. Open it with `0` while guiding, or from the route preview before you start. The D-pad
+  pans, `1`/`3` zoom, OK switches between following you and showing the whole route.
 - **Speed:** your current speed on the guidance screen, and the posted speed limit sign when it's known
   (with a TomTom key). Your speed turns orange when you're more than 5 mph over.
 - **Quiet during calls:** no prompts while a call rings or is active; when it ends, it tells you the next turn.
@@ -39,8 +43,9 @@ to pan. Spoken directions keep going with the phone closed.
 |---|---|
 | Where to? | ▲▼ move · OK open · **digits type a search** · left soft key: Set as Home / Work, Save, Remove |
 | Search | multi-tap letters (2–9, `0` space, `1` punctuation) · Back deletes · OK searches, then opens a result · right soft key clears |
-| Route preview | ▲▼ pick a route · OK or right soft key: Start · left soft key: Set as Home / Work, Save |
-| Guidance | OK repeats the instruction · `*` voice on/off · ▼ upcoming turns · left soft key: options (reroute, voice, stop) · right soft key: Stop · Back leaves the screen (guidance continues) |
+| Route preview | ▲▼ pick a route · OK or right soft key: Start · left soft key: Set as Home / Work, Save, Show route on map |
+| Guidance | OK repeats the instruction · `*` voice on/off · ▼ upcoming turns · `0` route overview · left soft key: options (overview, reroute, voice, stop) · right soft key: Stop · Back leaves the screen (guidance continues) |
+| Route overview | D-pad pans · `1` zoom out · `3` zoom in · OK: follow me ↔ whole route · left soft key: whole route · Back / right soft key: return |
 
 Stray digit keys are ignored on every screen. On some phones an unhandled digit opens the dialer, which
 you don't want mid-drive.
@@ -52,7 +57,7 @@ You need [adb](https://developer.android.com/tools/releases/platform-tools) and 
 1. Download `fiero-nav-*.apk` from [Releases](../../releases) (or [build it](#build)).
 2. Install it and allow location (the app also asks on first start):
    ```bash
-   adb install -r fiero-nav-0.3.0.apk
+   adb install -r fiero-nav-0.4.0.apk
    adb shell pm grant dev.mike.fieronav android.permission.ACCESS_FINE_LOCATION
    ```
 3. Open **Fiero Nav** from your app list. With [Fiero Launcher](https://github.com/SuperFieroStatus/fiero-launcher)
@@ -126,7 +131,9 @@ findings.
 
 Map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors (ODbL). Search by
 [Photon](https://github.com/komoot/photon) (Komoot). Routing by [OSRM](https://project-osrm.org), or
-[TomTom](https://developer.tomtom.com) (traffic and speed limits) with your own key.
+[TomTom](https://developer.tomtom.com) (traffic and speed limits) with your own key. Overview map tiles:
+[OpenStreetMap](https://www.openstreetmap.org) standard tiles, or TomTom's dark map with a key that allows
+map display. Tiles are cached on the phone for a week.
 
 ## Related
 
