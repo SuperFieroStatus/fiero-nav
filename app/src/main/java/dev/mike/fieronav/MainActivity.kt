@@ -36,6 +36,7 @@ class MainActivity : Activity(), KeyActionHandler {
         class Slot(item: ListItem, val place: Place?, val which: String) : Row(item)
         class Saved(item: ListItem, val place: Place) : Row(item)
         class Recent(item: ListItem, val place: Place) : Row(item)
+        class About(item: ListItem) : Row(item)
     }
 
     private lateinit var list: ListScreen
@@ -138,6 +139,7 @@ class MainActivity : Activity(), KeyActionHandler {
         }
         PlaceStore.saved(this).forEach { out += Row.Saved(ListItem("★ ${it.name}", detail(it)), it) }
         PlaceStore.recent(this).forEach { out += Row.Recent(ListItem(it.name, "Recent · ${detail(it)}"), it) }
+        out += Row.About(ListItem("About", "Map data © OpenStreetMap contributors", dim = true))
         rows = out
         list.setListItems(out.map { it.item }, homeSelection)
     }
@@ -150,8 +152,25 @@ class MainActivity : Activity(), KeyActionHandler {
                 ?: say("Pick a place, then Options > Set as ${row.which.replaceFirstChar { it.uppercase() }}")
             is Row.Saved -> DestinationActivity.open(this, row.place)
             is Row.Recent -> DestinationActivity.open(this, row.place)
+            is Row.About -> about()
             null -> Unit
         }
+    }
+
+    /** Credits required by the data licenses (OpenStreetMap is ODbL: attribution must be visible). */
+    private fun about() {
+        val version = packageManager.getPackageInfo(packageName, 0).versionName
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Fiero Nav $version")
+            .setMessage(
+                "Keypad-first driving navigation.\n\n" +
+                    "Map data © OpenStreetMap contributors (ODbL).\n" +
+                    "Search: Photon by Komoot.\n" +
+                    "Routes: OSRM (project-osrm.org).\n\n" +
+                    "No live traffic: times assume free-flowing roads.",
+            )
+            .setPositiveButton("OK", null)
+            .show()
     }
 
     private fun homeOptions(row: Row?) {

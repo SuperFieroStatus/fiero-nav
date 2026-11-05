@@ -1,7 +1,7 @@
 # Fiero Nav — keypad-first driving navigation for the TCL Flip 2
 
 Turn-by-turn driving navigation built for a D-pad, not a map you pan. Same phone, constraints and build setup
-as FlipSpot (`C:\dev\flipspot`) and Fiero Launcher (`C:\dev\fiero-launcher`): TCL Flip 2 (4058G, Android 11,
+as [FlipSpot](https://github.com/SuperFieroStatus/flipspot) and [Fiero Launcher](https://github.com/SuperFieroStatus/fiero-launcher): TCL Flip 2 (4058G, Android 11,
 240×320, 1 GB RAM, no touch, **no Google Play services**).
 
 ## Why our own app
@@ -80,6 +80,11 @@ adb shell am start -n dev.mike.fieronav/.MainActivity --es query "coffee"
 simulated drive with prompts, upcoming turns, detour → "Rerouting" → new route → "You have arrived";
 guidance keeps speaking with the screen off; Stop ends the service.
 
+**v0.2.0 — public release (2026-11-05).** About row with OpenStreetMap / Photon / OSRM credits (ODbL needs
+visible attribution); simulated drives can start anywhere (`--ef from_lat/from_lon`, used for the README
+screenshots); each trip starts with voice on (a muted trip no longer mutes the next one). MIT license, README,
+APK on GitHub Releases.
+
 **Next (ideas, in order of value):**
 1. A real drive: GPS jitter at low speed, tunnels, prompt timing on highways, battery use.
 2. Live traffic for ETAs and routing: TomTom or HERE routing APIs (free tiers, need an API key in
@@ -104,7 +109,7 @@ guidance keeps speaking with the screen off; Stop ends the service.
   first fixes it. Same-named results (chains) are re-sorted nearest first, with the distance in the row.
 - OSRM returns one route for many trips (`alternatives=true` is best effort). Its ramp/exit data gives
   `exits` ("235 A") and `destinations` ("I 35 North: Waco") — used for "Take exit 235 A … toward …".
-- OsmAnd 5.4.10 (installed 2026-11-05, Austin map downloaded) handles `osmand.api://` and `google.navigation:`.
+- OsmAnd 5.4.10 (installed 2026-11-05, with a regional map downloaded) handles `osmand.api://` and `google.navigation:`.
   It kept GPS on in the background after use (battery): force-stop it when done.
 - `Log.d` lines don't show in logcat from these release builds (`Log.i` does); KeyRouter's per-key debug log
   is therefore invisible in release.

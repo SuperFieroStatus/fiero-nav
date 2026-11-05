@@ -65,7 +65,13 @@ class GuideActivity : Activity(), KeyActionHandler {
         )
         Nav.simSpeed = intent.getFloatExtra("sim_speed", 17f).toDouble()
         Nav.simDetour = intent.getBooleanExtra("sim_detour", false)
-        Nav.start(this, p, null, simulated = intent.getBooleanExtra("simulate", false))
+        // Optional start point (`--ef from_lat .. --ef from_lon ..`), for demos away from your real location.
+        val origin = if (intent.hasExtra("from_lat")) {
+            LatLng(intent.getFloatExtra("from_lat", 0f).toDouble(), intent.getFloatExtra("from_lon", 0f).toDouble())
+        } else {
+            null
+        }
+        Nav.start(this, p, null, simulated = intent.getBooleanExtra("simulate", false), origin = origin)
     }
 
     override fun onResume() {

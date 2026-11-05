@@ -89,12 +89,13 @@ object Nav {
     // ---- session ----
 
     /** Starts guidance to [place]; uses [initial] if a route was already fetched for the preview. */
-    fun start(context: Context, place: Place, initial: Route?, simulated: Boolean = false) {
+    fun start(context: Context, place: Place, initial: Route?, simulated: Boolean = false, origin: LatLng? = null) {
         init(context)
         stopLocation()
         destination = place
         route = null
         simulate = simulated
+        muted = false // each trip starts with voice on, whatever the last one ended with
         resetProgress()
         spokeStart = false
         PlaceStore.addRecent(app, place)
@@ -104,7 +105,7 @@ object Nav {
             useRoute(initial)
         } else {
             publish(Status.ROUTING, "Finding route…")
-            fetchRoute(lastKnown(app), heading = null)
+            fetchRoute(origin ?: lastKnown(app), heading = null)
         }
     }
 
