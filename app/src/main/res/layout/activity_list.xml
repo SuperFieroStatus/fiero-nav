@@ -19,18 +19,38 @@
         android:textSize="16sp"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/info"
+    <!-- Entry / info line, with the search input-mode badge (Abc, abc, ABC, 123) on its right -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ellipsize="start"
-        android:minHeight="30dp"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="8dp"
-        android:singleLine="true"
-        android:textColor="@color/text"
-        android:textSize="17sp"
-        android:visibility="gone" />
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="start"
+            android:minHeight="30dp"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:singleLine="true"
+            android:textColor="@color/text"
+            android:textSize="17sp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="6dp"
+            android:background="@color/highlight"
+            android:paddingHorizontal="5dp"
+            android:singleLine="true"
+            android:textColor="@color/highlight_text"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <dev.mike.fieronav.ui.ListScreen
         android:id="@+id/list"

@@ -101,7 +101,7 @@ dots (zoom ≥ 12), destination, and your position arrow. Opened with `0` / Opti
 Options → Show route on map on the preview (a route that hasn't started). Mercator math unit-tested.
 
 **v0.5.0 (2026-11-05).** Search typing follows feature-phone conventions (user request: typing "1" took five
-presses of the 1 key): `#` cycles Abc → abc → ABC → 123, the mode shows in the title, and holding any digit
+presses of the 1 key): `#` cycles Abc → abc → ABC → 123, the mode shows in an orange badge on the entry line (plus a toast on change; the first version only changed the title text, which was easy to miss), and holding any digit
 key types the digit in letter modes (`KeyEvent.isLongPress` on the first auto-repeat). MultiTap's timer is
 injectable, so the typing rules are unit-tested (10 tests).
 

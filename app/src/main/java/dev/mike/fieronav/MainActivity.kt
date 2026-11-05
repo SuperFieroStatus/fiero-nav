@@ -42,6 +42,7 @@ class MainActivity : Activity(), KeyActionHandler {
     private lateinit var list: ListScreen
     private lateinit var title: TextView
     private lateinit var entry: TextView
+    private lateinit var modeBadge: TextView
     private lateinit var softLeft: TextView
     private lateinit var softCenter: TextView
     private lateinit var softRight: TextView
@@ -63,6 +64,7 @@ class MainActivity : Activity(), KeyActionHandler {
         list = findViewById(R.id.list)
         title = findViewById(R.id.title)
         entry = findViewById(R.id.info)
+        modeBadge = findViewById(R.id.mode)
         entry.setBackgroundColor(getColor(R.color.divider))
         softLeft = findViewById(R.id.soft_left)
         softCenter = findViewById(R.id.soft_center)
@@ -118,6 +120,7 @@ class MainActivity : Activity(), KeyActionHandler {
     private fun showHome() {
         searching = false
         entry.visibility = View.GONE
+        modeBadge.visibility = View.GONE
         title.text = "Where to?"
         softLeft.text = "Options"
         softCenter.text = "Go"
@@ -203,16 +206,22 @@ class MainActivity : Activity(), KeyActionHandler {
         renderEntry(multiTap.text, null)
     }
 
-    /** Search title plus the input mode, e.g. "Results (12) · Abc" (`#` changes the mode). */
+    /** Search title; the input mode (`#` changes it) shows in the badge on the entry line. */
     private var titleBase = "Search"
 
     private fun setSearchTitle(base: String) {
         titleBase = base
-        if (searching) title.text = "$base · ${multiTap.mode.label}"
+        if (searching) {
+            title.text = base
+            modeBadge.text = multiTap.mode.label
+        }
     }
 
     private fun renderSearchChrome() {
         entry.visibility = View.VISIBLE
+        modeBadge.visibility = View.VISIBLE
+        // Keep typed text clear of the badge.
+        entry.setPadding(entry.paddingLeft, entry.paddingTop, (52 * resources.displayMetrics.density).toInt(), entry.paddingBottom)
         setSearchTitle(if (results.isEmpty()) "Search" else "Results (${results.size})")
         softLeft.text = "Options"
         softCenter.text = "Search"
@@ -320,7 +329,10 @@ class MainActivity : Activity(), KeyActionHandler {
             }
             // # changes the input mode (Abc / abc / ABC / 123), or opens search from the list.
             KeyAction.POUND -> if (!repeat) {
-                if (!searching) enterSearch() else multiTap.nextMode()
+                if (!searching) enterSearch() else {
+                    multiTap.nextMode()
+                    say(MODE_NAMES.getValue(multiTap.mode))
+                }
             }
             // * is consumed too, so it can't reach the system dialer.
             KeyAction.STAR -> Unit
@@ -332,5 +344,12 @@ class MainActivity : Activity(), KeyActionHandler {
     companion object {
         private const val SCREEN = "WhereTo"
         const val EXTRA_QUERY = "query"
+
+        private val MODE_NAMES = mapOf(
+            MultiTap.Mode.SENTENCE to "Abc: capital first letter",
+            MultiTap.Mode.LOWER to "abc: lower case",
+            MultiTap.Mode.UPPER to "ABC: capitals",
+            MultiTap.Mode.DIGITS to "123: numbers",
+        )
     }
 }
