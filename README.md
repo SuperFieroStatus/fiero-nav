@@ -42,7 +42,7 @@ to pan. Spoken directions keep going with the phone closed.
 | Screen | Keys |
 |---|---|
 | Where to? | ▲▼ move · OK open · **digits type a search** · left soft key: Set as Home / Work, Save, Remove |
-| Search | multi-tap letters (2–9, `0` space, `1` punctuation) · Back deletes · OK searches, then opens a result · right soft key clears |
+| Search | multi-tap letters (2–9, `0` space, `1` punctuation) · **hold a key** for its digit · **`#`** changes mode: Abc → abc → ABC → 123 (shown in the title) · Back deletes · OK searches, then opens a result · right soft key clears |
 | Route preview | ▲▼ pick a route · OK or right soft key: Start · left soft key: Set as Home / Work, Save, Show route on map |
 | Guidance | OK repeats the instruction · `*` voice on/off · ▼ upcoming turns · `0` route overview · left soft key: options (overview, reroute, voice, stop) · right soft key: Stop · Back leaves the screen (guidance continues) |
 | Route overview | D-pad pans · `1` zoom out · `3` zoom in · OK: follow me ↔ whole route · left soft key: whole route · Back / right soft key: return |
@@ -57,7 +57,7 @@ You need [adb](https://developer.android.com/tools/releases/platform-tools) and 
 1. Download `fiero-nav-*.apk` from [Releases](../../releases) (or [build it](#build)).
 2. Install it and allow location (the app also asks on first start):
    ```bash
-   adb install -r fiero-nav-0.4.0.apk
+   adb install -r fiero-nav-0.5.0.apk
    adb shell pm grant dev.mike.fieronav android.permission.ACCESS_FINE_LOCATION
    ```
 3. Open **Fiero Nav** from your app list. With [Fiero Launcher](https://github.com/SuperFieroStatus/fiero-launcher)

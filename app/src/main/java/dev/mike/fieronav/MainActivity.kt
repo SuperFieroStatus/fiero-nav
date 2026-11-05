@@ -203,9 +203,17 @@ class MainActivity : Activity(), KeyActionHandler {
         renderEntry(multiTap.text, null)
     }
 
+    /** Search title plus the input mode, e.g. "Results (12) · Abc" (`#` changes the mode). */
+    private var titleBase = "Search"
+
+    private fun setSearchTitle(base: String) {
+        titleBase = base
+        if (searching) title.text = "$base · ${multiTap.mode.label}"
+    }
+
     private fun renderSearchChrome() {
         entry.visibility = View.VISIBLE
-        title.text = if (results.isEmpty()) "Search" else "Results (${results.size})"
+        setSearchTitle(if (results.isEmpty()) "Search" else "Results (${results.size})")
         softLeft.text = "Options"
         softCenter.text = "Search"
         softRight.text = "Clear"
@@ -232,6 +240,7 @@ class MainActivity : Activity(), KeyActionHandler {
             sb.append("▏")
         }
         entry.text = sb
+        if (searching) setSearchTitle(titleBase) // the mode may have changed
     }
 
     private fun search() {
@@ -240,7 +249,7 @@ class MainActivity : Activity(), KeyActionHandler {
         if (busy) return
         busy = true
         searched = q
-        title.text = "Searching…"
+        setSearchTitle("Searching…")
         val near = Here.best(this)
         Net.io.execute {
             val res = runCatching { PlaceSearch.search(q, near) }
@@ -249,7 +258,7 @@ class MainActivity : Activity(), KeyActionHandler {
                 if (isDestroyed || !searching) return@runOnUiThread
                 res.onSuccess { places ->
                     results = places
-                    title.text = if (places.isEmpty()) "No results" else "Results (${places.size})"
+                    setSearchTitle(if (places.isEmpty()) "No results" else "Results (${places.size})")
                     list.setEmptyText("Nothing found for “$q”")
                     list.setListItems(
                         places.map { p ->
@@ -259,7 +268,7 @@ class MainActivity : Activity(), KeyActionHandler {
                         },
                     )
                 }.onFailure {
-                    title.text = "Search"
+                    setSearchTitle("Search")
                     list.setEmptyText("Can't reach search (no data?)")
                     list.setListItems(emptyList())
                 }
@@ -284,6 +293,8 @@ class MainActivity : Activity(), KeyActionHandler {
                 if (!searching) enterSearch()
                 literal.setLength(0)
                 multiTap.press(key.digit)
+            } else if (event.isLongPress && searching) {
+                multiTap.longPress(key.digit) // hold a key: type its digit in any mode
             }
             KeyAction.OK -> if (!repeat) {
                 if (!searching) open(rows.getOrNull(list.selectedIndex))
@@ -307,8 +318,12 @@ class MainActivity : Activity(), KeyActionHandler {
                 if (searching) { literal.setLength(0); multiTap.clear() }
                 else if (Nav.active) startActivity(Intent(this, GuideActivity::class.java))
             }
-            // * and # are consumed too, so they can't reach the system dialer either.
-            KeyAction.STAR, KeyAction.POUND -> Unit
+            // # changes the input mode (Abc / abc / ABC / 123), or opens search from the list.
+            KeyAction.POUND -> if (!repeat) {
+                if (!searching) enterSearch() else multiTap.nextMode()
+            }
+            // * is consumed too, so it can't reach the system dialer.
+            KeyAction.STAR -> Unit
             else -> return false
         }
         return true
