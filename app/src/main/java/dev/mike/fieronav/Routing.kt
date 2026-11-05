@@ -5,7 +5,7 @@ import java.io.IOException
 
 enum class Arrow { STRAIGHT, SLIGHT_LEFT, LEFT, SHARP_LEFT, UTURN, SLIGHT_RIGHT, RIGHT, SHARP_RIGHT, ROUNDABOUT, ARRIVE }
 
-/** One maneuver, as OSRM describes it, with the text we show and say for it. */
+/** One maneuver (from OSRM or TomTom), with the text we show and say for it. */
 data class Step(
     val type: String,
     val modifier: String,
@@ -14,7 +14,7 @@ data class Step(
     val arrow: Arrow,
     /** Index into [Route.points] where this maneuver happens. */
     val startIndex: Int,
-    /** OSRM's travel time for the stretch after this maneuver, seconds. */
+    /** Travel time for the stretch after this maneuver, seconds (TomTom's includes traffic). */
     val duration: Double,
 )
 
@@ -23,8 +23,13 @@ class Route(
     val steps: List<Step>,
     val distance: Double,
     val duration: Double,
-    /** "via" roads, e.g. "I 35, US 290". */
-    val summary: String,
+    /** "via" roads, e.g. "I 35, US 290"; computed from the steps when the router gives none. */
+    summary: String,
+    /** Posted limit (km/h) for the segment starting at each point; 0 = unknown. TomTom only. */
+    val speedLimitsKmh: IntArray? = null,
+    /** Extra seconds from current traffic, already included in [duration]. TomTom only. */
+    val trafficDelay: Double = 0.0,
+    val source: String = "OSRM",
 ) {
     /** Distance along the route at each point, metres. */
     val cumulative: DoubleArray = DoubleArray(points.size).also { c ->
@@ -33,13 +38,39 @@ class Route(
     val length: Double get() = cumulative.lastOrNull() ?: 0.0
 
     fun along(step: Step): Double = cumulative[step.startIndex]
+
+    /** The two roads you spend the longest on, if the router didn't name any. */
+    val summary: String = summary.ifEmpty {
+        steps.mapIndexedNotNull { i, s ->
+            val end = steps.getOrNull(i + 1)?.let { along(it) } ?: length
+            if (s.road.isEmpty()) null else s.road to (end - along(s))
+        }.groupBy({ it.first }, { it.second }).mapValues { it.value.sum() }
+            .entries.sortedByDescending { it.value }.take(2).joinToString(", ") { it.key }
+    }
+
+    /** Speed limit at segment [index] in km/h, or null when unknown. */
+    fun speedLimitAt(index: Int): Int? = speedLimitsKmh?.getOrNull(index)?.takeIf { it > 0 }
 }
 
 class RouteError(msg: String) : IOException(msg)
 
-/** Driving routes from the public OSRM server (router.project-osrm.org): no key, no traffic. */
+/**
+ * Driving routes: TomTom (live traffic, speed limits) when [Keys.tomtom] is set, falling back to the
+ * public OSRM server (router.project-osrm.org: no key, no traffic) if TomTom fails or there's no key.
+ */
 object Routing {
     fun routes(from: LatLng, to: LatLng, headingDeg: Double? = null, alternatives: Boolean = true): List<Route> {
+        Keys.tomtom?.let { key ->
+            try {
+                return TomTom.routes(key, from, to, headingDeg, alternatives)
+            } catch (e: java.io.IOException) {
+                android.util.Log.w(dev.mike.fieronav.ui.KeyRouter.TAG, "TomTom failed, using OSRM: $e")
+            }
+        }
+        return osrm(from, to, headingDeg, alternatives)
+    }
+
+    private fun osrm(from: LatLng, to: LatLng, headingDeg: Double?, alternatives: Boolean): List<Route> {
         // A heading on the start point stops a reroute from telling you to turn around on a highway.
         val bearings = headingDeg?.let { "&bearings=${it.toInt()},60;" } ?: ""
         val url = "https://router.project-osrm.org/route/v1/driving/" +

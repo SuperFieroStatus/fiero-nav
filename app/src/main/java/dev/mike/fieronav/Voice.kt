@@ -61,6 +61,11 @@ class Voice(context: Context) {
         tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "p${id++}")
     }
 
+    /** Call audio in progress (cellular or VoIP), whatever the telephony state says. */
+    fun callAudioActive(): Boolean =
+        audio.mode == AudioManager.MODE_IN_CALL || audio.mode == AudioManager.MODE_IN_COMMUNICATION ||
+            audio.mode == AudioManager.MODE_RINGTONE
+
     fun stop() {
         if (ready) tts.stop()
         audio.abandonAudioFocusRequest(focus)

@@ -85,13 +85,20 @@ visible attribution); simulated drives can start anywhere (`--ef from_lat/from_l
 screenshots); each trip starts with voice on (a muted trip no longer mutes the next one). MIT license, README,
 APK on GitHub Releases.
 
+**v0.3.0 (2026-11-05).** Live traffic via TomTom Routing API v1 `calculateRoute` (`traffic=true`,
+`instructionsType=text`, `sectionType=speedLimit`, `maxAlternatives=2`, `vehicleHeading` on reroutes) when a key
+is set; OSRM otherwise or on any TomTom failure. TomTom maneuver codes map onto OSRM's (type, modifier) so
+`Instructions` words both; unknown codes use TomTom's own `message` and are still announced. Speed (GPS) and
+speed limit (TomTom `SPEED_LIMIT` sections, km/h rounded to the nearest 5 mph) on the guidance screen.
+Prompts are held during calls (`LISTEN_CALL_STATE`, no permission at targetSdk 30, plus `AudioManager.mode`
+for VoIP); the current instruction is repeated 1.5 s after the call ends. The key lives in app prefs, set via
+`--es tomtom_key` (deploy.ps1 sends `TOMTOM_API_KEY` from local.properties), so release APKs carry no key.
+
 **Next (ideas, in order of value):**
 1. A real drive: GPS jitter at low speed, tunnels, prompt timing on highways, battery use.
-2. Live traffic for ETAs and routing: TomTom or HERE routing APIs (free tiers, need an API key in
-   `local.properties`).
-3. Fiero Launcher: show the next turn in the home screen's Now Playing line while guiding.
-4. Route overview map (secondary): a simple tile view, D-pad pan, zoom on 1/3.
-5. Speed limit / current speed on the guidance screen.
+2. Fiero Launcher: show the next turn in the home screen's Now Playing line while guiding.
+3. Route overview map (secondary): a simple tile view, D-pad pan, zoom on 1/3.
+4. Speed limits without TomTom: the public OSRM server rejects `annotations=maxspeed` ("InvalidQuery").
 
 ## Phone findings
 
@@ -113,3 +120,13 @@ APK on GitHub Releases.
   It kept GPS on in the background after use (battery): force-stop it when done.
 - `Log.d` lines don't show in logcat from these release builds (`Log.i` does); KeyRouter's per-key debug log
   is therefore invisible in release.
+
+### v0.3.0 (2026-11-05)
+
+- OSRM demo server: `annotations=speed` works, `annotations=maxspeed` returns `InvalidQuery`, so speed limits
+  come only from TomTom.
+- TomTom with a bad key answers 401 `{"code":"Unauthorized","message":…}`; the fallback to OSRM was tested
+  on the phone that way. A real TomTom key hasn't been tested on the phone yet.
+- Call handling is untested on a real call (the phone has no SIM yet).
+- GuideActivity is `singleTop`: a second debug start while guidance is open arrives in `onNewIntent`
+  (previously ignored, the old drive kept going).

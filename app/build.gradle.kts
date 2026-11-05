@@ -10,8 +10,8 @@ android {
         applicationId = "dev.mike.fieronav"
         minSdk = 30
         targetSdk = 30
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.3.0"
     }
 
     buildTypes {
@@ -39,4 +39,5 @@ android {
 // No runtime dependencies: framework Views and APIs only. JUnit is test-only and never ships.
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303") // real org.json for parser tests (Android ships its own)
 }

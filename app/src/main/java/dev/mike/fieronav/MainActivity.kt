@@ -71,11 +71,13 @@ class MainActivity : Activity(), KeyActionHandler {
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
         }
+        Keys.fromIntent(this, intent)?.let { say(it) }
         handleDebugQuery(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        Keys.fromIntent(this, intent)?.let { say(it) }
         handleDebugQuery(intent)
     }
 
@@ -166,8 +168,8 @@ class MainActivity : Activity(), KeyActionHandler {
                 "Keypad-first driving navigation.\n\n" +
                     "Map data © OpenStreetMap contributors (ODbL).\n" +
                     "Search: Photon by Komoot.\n" +
-                    "Routes: OSRM (project-osrm.org).\n\n" +
-                    "No live traffic: times assume free-flowing roads.",
+                    "Routes: " + (if (Keys.tomtom != null) "TomTom (live traffic), OSRM as fallback" else "OSRM (project-osrm.org)") + ".\n\n" +
+                    (if (Keys.tomtom != null) "Traffic and speed limits © TomTom." else "No live traffic: times assume free-flowing roads."),
             )
             .setPositiveButton("OK", null)
             .show()

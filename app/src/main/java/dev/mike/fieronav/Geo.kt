@@ -115,6 +115,11 @@ object Units {
         }
     }
 
+    fun mph(mps: Double): Int = (mps * 2.236936).roundToInt()
+
+    /** Posted limits are whole mph signs stored as km/h; round back to the nearest 5 mph. */
+    fun limitMph(kmh: Int): Int = ((kmh / 1.609344) / 5).roundToInt() * 5
+
     fun duration(seconds: Double): String {
         val min = (seconds / 60).roundToInt().coerceAtLeast(1)
         return if (min < 60) "$min min" else "${min / 60} h ${min % 60} min"

@@ -2,6 +2,7 @@ package dev.mike.fieronav
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -29,6 +30,8 @@ class GuideActivity : Activity(), KeyActionHandler {
     private lateinit var instruction: TextView
     private lateinit var then: TextView
     private lateinit var road: TextView
+    private lateinit var speed: TextView
+    private lateinit var limit: TextView
     private lateinit var guide: View
     private lateinit var steps: ListScreen
     private lateinit var softCenter: TextView
@@ -47,6 +50,8 @@ class GuideActivity : Activity(), KeyActionHandler {
         instruction = findViewById(R.id.instruction)
         then = findViewById(R.id.then)
         road = findViewById(R.id.road)
+        speed = findViewById(R.id.speed)
+        limit = findViewById(R.id.limit)
         guide = findViewById(R.id.guide)
         steps = findViewById(R.id.steps)
         softCenter = findViewById(R.id.soft_center)
@@ -74,6 +79,12 @@ class GuideActivity : Activity(), KeyActionHandler {
         Nav.start(this, p, null, simulated = intent.getBooleanExtra("simulate", false), origin = origin)
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        startFromDebugExtras() // singleTop: a new debug start arrives here while guidance is open
+    }
+
     override fun onResume() {
         super.onResume()
         Nav.addListener(listener)
@@ -98,6 +109,8 @@ class GuideActivity : Activity(), KeyActionHandler {
                 instruction.text = s.message
                 then.text = ""
                 road.text = ""
+                speed.text = ""
+                limit.visibility = View.GONE
             }
             Nav.Status.ARRIVED -> {
                 eta.text = "Arrived · ${timeFormat.format(Date())}"
@@ -106,6 +119,8 @@ class GuideActivity : Activity(), KeyActionHandler {
                 instruction.text = s.destination?.name.orEmpty()
                 then.text = ""
                 road.text = s.destination?.address.orEmpty()
+                speed.text = ""
+                limit.visibility = View.GONE
             }
             Nav.Status.GUIDING -> {
                 eta.text = "${timeFormat.format(Date(s.etaMillis))} · ${Units.duration(s.remainingTime)} · " +
@@ -119,9 +134,19 @@ class GuideActivity : Activity(), KeyActionHandler {
                     s.currentRoad.isNotEmpty() -> "On ${s.currentRoad}"
                     else -> ""
                 }
+                showSpeed(s)
                 if (showingSteps) fillSteps()
             }
         }
+    }
+
+    private fun showSpeed(s: Nav.Snapshot) {
+        val mph = s.speedMps?.let { Units.mph(it) }
+        val limitMph = s.limitKmh?.let { Units.limitMph(it) }
+        speed.text = mph?.let { "$it mph" }.orEmpty()
+        speed.setTextColor(getColor(if (mph != null && limitMph != null && mph > limitMph + 5) R.color.highlight else R.color.text))
+        limit.visibility = if (limitMph != null) View.VISIBLE else View.GONE
+        limit.text = limitMph?.toString().orEmpty()
     }
 
     private fun fillSteps() {

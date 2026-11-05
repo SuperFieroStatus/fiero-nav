@@ -20,6 +20,11 @@ to pan. Spoken directions keep going with the phone closed.
 - **Guidance:** big turn arrow, distance to the turn, the instruction, the turn after it when close, arrival
   time and what's left. Spoken prompts ("In half a mile, take exit 235 A on the right toward 15th Street"),
   automatic rerouting when you leave the route, and "You have arrived".
+- **Speed:** your current speed on the guidance screen, and the posted speed limit sign when it's known
+  (with a TomTom key). Your speed turns orange when you're more than 5 mph over.
+- **Quiet during calls:** no prompts while a call rings or is active; when it ends, it tells you the next turn.
+- **Live traffic (optional):** add a free TomTom key and routes, arrival times and the "+6 min traffic"
+  estimate account for current traffic. Without one it uses OpenStreetMap routing (no traffic).
 - **Works closed:** a foreground service keeps GPS and voice running with the flip shut or another app open.
   Music ducks while it speaks.
 - **No Google needed:** runs on phones without Google Play services. Search and routes come from free
@@ -46,7 +51,7 @@ You need [adb](https://developer.android.com/tools/releases/platform-tools) and 
 1. Download `fiero-nav-*.apk` from [Releases](../../releases) (or [build it](#build)).
 2. Install it and allow location (the app also asks on first start):
    ```bash
-   adb install -r fiero-nav-0.2.0.apk
+   adb install -r fiero-nav-0.3.0.apk
    adb shell pm grant dev.mike.fieronav android.permission.ACCESS_FINE_LOCATION
    ```
 3. Open **Fiero Nav** from your app list. With [Fiero Launcher](https://github.com/SuperFieroStatus/fiero-launcher)
@@ -55,14 +60,29 @@ You need [adb](https://developer.android.com/tools/releases/platform-tools) and 
 The phone needs a **data connection** for search and routing, plus a text-to-speech voice (most phones ship
 one; the Flip 2 has Pico).
 
+### Live traffic and speed limits (optional)
+
+1. Create a free account at [developer.tomtom.com](https://developer.tomtom.com) and copy your API key
+   (the free tier covers 20,000 routes a month; each route or reroute is one).
+2. Send the key to the phone; it's stored in the app's settings on the phone, never in the APK:
+   ```bash
+   adb shell am start -n dev.mike.fieronav/.MainActivity --es tomtom_key YOUR_KEY
+   ```
+   Or, if you build it yourself, put `TOMTOM_API_KEY=YOUR_KEY` in `local.properties` (not committed) and
+   `scripts\deploy.ps1` sends it after each install.
+3. **About** in the Where to? list shows which router is in use. To remove the key: `--es tomtom_key ""`.
+
+If TomTom can't be reached (no signal, quota used up, bad key), routing falls back to OSRM automatically.
+
 ## Limitations
 
-- **No live traffic.** Times assume free-flowing roads.
+- **No live traffic without a TomTom key.** OSRM times assume free-flowing roads, and there are no speed
+  limits.
 - **Online only** (except the OsmAnd hand-off). Losing signal mid-route keeps the current route; rerouting
   waits for data.
 - **Driving only, English prompts, US units** (feet and miles).
 - Uses public servers: [Photon](https://photon.komoot.io) for search and the
-  [OSRM demo server](https://project-osrm.org) for routes. They're free for light personal use. If you build
+  [OSRM demo server](https://project-osrm.org) for routes (or TomTom with your key). They're free for light personal use. If you build
   something bigger on this, run your own or use a paid API.
 - Only real-world tested on the TCL Flip 2 so far (Android 11, 240×320, no touch screen).
 
@@ -72,7 +92,7 @@ Requirements: JDK 17+ and the Android SDK (Android Studio provides both).
 
 ```bash
 ./gradlew assembleRelease     # app/build/outputs/apk/release/app-release.apk (~100 KB, R8-shrunk)
-./gradlew testDebugUnitTest   # geometry, units, instruction wording, search ordering
+./gradlew testDebugUnitTest   # geometry, units, instruction wording, search ordering, TomTom parsing
 ```
 
 Release builds are signed with your **debug key** for convenience; use your own keystore to distribute.
@@ -95,7 +115,8 @@ reroute. Without `from_lat`/`from_lon` it starts from your location. Search with
 
 ## How it works
 
-Plain Kotlin and Android Views, **no dependencies** (HttpURLConnection + org.json). Each GPS fix is matched
+Plain Kotlin and Android Views, **no dependencies** (HttpURLConnection + org.json). TomTom routes are
+mapped onto the same maneuver model as OSRM's, so wording, arrows and prompts are shared. Each GPS fix is matched
 to the route line to work out how far along you are; prompts fire at distances scaled by speed; three fixes
 off the route trigger a reroute with your heading. [`PLAN.md`](PLAN.md) has the design notes and the phone
 findings.
@@ -103,7 +124,8 @@ findings.
 ## Credits
 
 Map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors (ODbL). Search by
-[Photon](https://github.com/komoot/photon) (Komoot). Routing by [OSRM](https://project-osrm.org).
+[Photon](https://github.com/komoot/photon) (Komoot). Routing by [OSRM](https://project-osrm.org), or
+[TomTom](https://developer.tomtom.com) (traffic and speed limits) with your own key.
 
 ## Related
 

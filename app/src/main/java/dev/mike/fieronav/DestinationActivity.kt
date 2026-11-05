@@ -83,9 +83,10 @@ class DestinationActivity : Activity(), KeyActionHandler {
                     val time = DateFormat.getTimeInstance(DateFormat.SHORT)
                     val items = found.mapIndexed { i, r ->
                         val arrive = time.format(Date(System.currentTimeMillis() + (r.duration * 1000).toLong()))
+                        val traffic = if (r.trafficDelay >= 60) " · +${Units.duration(r.trafficDelay)} traffic" else ""
                         ListItem(
                             "${Units.duration(r.duration)} · ${Units.distance(r.distance)} · $arrive${if (i == 0) "" else " (alt)"}",
-                            "via ${r.summary.ifEmpty { "local roads" }}",
+                            "via ${r.summary.ifEmpty { "local roads" }}$traffic",
                         )
                     } + ListItem("Open in OsmAnd", "Offline navigation", dim = true)
                     list.setListItems(items)

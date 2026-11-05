@@ -37,6 +37,11 @@ object Nav {
         val muted: Boolean = false,
         val gpsOk: Boolean = false,
         val simulating: Boolean = false,
+        /** Current speed from GPS, m/s; null without a recent fix that has speed. */
+        val speedMps: Double? = null,
+        /** Posted limit where you are, km/h (TomTom routes only). */
+        val limitKmh: Int? = null,
+        val trafficDelay: Double = 0.0,
     )
 
     data class Upcoming(val step: Step, val distance: Double)
@@ -67,12 +72,17 @@ object Nav {
     private var announcedLevel = 0 // 1 = early heads-up, 2 = final prompt
     private var spokeStart = false
 
+    /** True while a phone call rings or is active: prompts are held back (they'd talk over the call). */
+    private var inCall = false
+    private var callListener: Any? = null
+
     private lateinit var voice: Voice
 
     fun init(context: Context) {
         if (::app.isInitialized) return
         app = context.applicationContext
         voice = Voice(app)
+        Keys.load(app)
     }
 
     fun addListener(l: (Snapshot) -> Unit) {
@@ -100,6 +110,7 @@ object Nav {
         spokeStart = false
         PlaceStore.addRecent(app, place)
         app.startForegroundService(Intent(app, NavService::class.java))
+        watchCalls(true)
         startLocation()
         if (initial != null) {
             useRoute(initial)
@@ -110,6 +121,7 @@ object Nav {
     }
 
     fun stop() {
+        watchCalls(false)
         stopLocation()
         voice.stop()
         destination = null
@@ -129,7 +141,7 @@ object Nav {
     fun repeat() {
         val s = snapshot
         val next = s.next ?: return
-        voice.say(prompt(next, s.distToNext), force = true)
+        say(prompt(next, s.distToNext), force = true)
     }
 
     fun upcoming(): List<Upcoming> {
@@ -351,8 +363,38 @@ object Nav {
     private fun lower(s: String) = s.replaceFirstChar { it.lowercase() }
 
     private fun say(text: String, force: Boolean) {
+        if (inCall || voice.callAudioActive()) {
+            Log.i(KeyRouter.TAG, "held (call): $text")
+            return
+        }
         Log.i(KeyRouter.TAG, "say: $text")
         if (!muted || force) voice.say(text, force)
+    }
+
+    /** Call state needs no permission at targetSdk 30 (the number isn't read). */
+    @Suppress("DEPRECATION")
+    private fun watchCalls(on: Boolean) {
+        val tm = app.getSystemService(android.telephony.TelephonyManager::class.java) ?: return
+        (callListener as? android.telephony.PhoneStateListener)?.let { tm.listen(it, android.telephony.PhoneStateListener.LISTEN_NONE) }
+        callListener = null
+        inCall = false
+        if (!on) return
+        val l = object : android.telephony.PhoneStateListener() {
+            override fun onCallStateChanged(state: Int, phoneNumber: String?) {
+                val was = inCall
+                inCall = state != android.telephony.TelephonyManager.CALL_STATE_IDLE
+                Log.i(KeyRouter.TAG, "call state $state")
+                if (inCall) voice.stop()
+                // Call over: say where we are, after the call audio has let go.
+                if (was && !inCall && snapshot.status == Status.GUIDING) main.postDelayed({ repeat() }, 1500)
+            }
+        }
+        try {
+            tm.listen(l, android.telephony.PhoneStateListener.LISTEN_CALL_STATE)
+            callListener = l
+        } catch (e: SecurityException) {
+            Log.w(KeyRouter.TAG, "can't watch calls: $e")
+        }
     }
 
     // ---- publishing ----
@@ -371,6 +413,9 @@ object Nav {
             muted = muted,
             gpsOk = lastFix != null && SystemClock.elapsedRealtime() - lastFixAt < 5000,
             simulating = simulate,
+            speedMps = lastFix?.takeIf { it.hasSpeed() && SystemClock.elapsedRealtime() - lastFixAt < 5000 }?.speed?.toDouble(),
+            limitKmh = route?.speedLimitAt(segIndex),
+            trafficDelay = route?.trafficDelay ?: 0.0,
         )
         listeners.toList().forEach { it(snapshot) }
     }

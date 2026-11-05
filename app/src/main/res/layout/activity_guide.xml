@@ -76,15 +76,50 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <TextView
-            android:id="@+id/road"
+        <!-- Current road · your speed · posted limit -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
-            android:ellipsize="end"
-            android:singleLine="true"
-            android:textColor="@color/text_dim"
-            android:textSize="14sp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/road"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textColor="@color/text_dim"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/speed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:singleLine="true"
+                android:textColor="@color/text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/limit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/limit_sign"
+                android:minWidth="30dp"
+                android:gravity="center"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="1dp"
+                android:singleLine="true"
+                android:textColor="#FF000000"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Upcoming turns (Down from the guidance view) -->

@@ -110,6 +110,17 @@ if ($LASTEXITCODE -ne 0) { Fail 'adb install failed' }
 # Location permission without the on-screen prompt (the app also asks if it's missing).
 Adb shell pm grant $Package android.permission.ACCESS_FINE_LOCATION
 
+# Optional TomTom key (live traffic, speed limits): TOMTOM_API_KEY in local.properties (never committed).
+# It goes to the app's prefs on the phone, so it's never inside the APK.
+$tomtomLine = if (Test-Path $localProps) { Get-Content $localProps | Where-Object { $_ -match '^\s*TOMTOM_API_KEY\s*=' } | Select-Object -First 1 }
+if ($tomtomLine) {
+    $tomtomKey = ($tomtomLine -replace '^\s*TOMTOM_API_KEY\s*=\s*', '').Trim()
+    if ($tomtomKey) {
+        Step 'Sending TomTom key to the phone'
+        Adb shell am start -n "$Package/.MainActivity" --es tomtom_key $tomtomKey | Out-Null
+    }
+}
+
 if (-not $NoLaunch) {
     Adb logcat -c
     Step "Launching $Activity"
