@@ -9,6 +9,7 @@ to pan. Spoken directions keep going with the phone closed.
   <img src="docs/screenshots/search-typing.png" width="240" alt="Typing a search on the number keys">
   <img src="docs/screenshots/guide-1.png" width="240" alt="Guidance: turn left onto Broadway in 0.3 mi">
   <img src="docs/screenshots/guide-3.png" width="240" alt="Guidance: turn right onto Divisadero Street">
+  <img src="docs/screenshots/guide-speed.png" width="240" alt="Guidance with TomTom: speed 38 mph in orange next to a 30 limit sign">
   <img src="docs/screenshots/upcoming.png" width="240" alt="Upcoming turns list">
 </p>
 

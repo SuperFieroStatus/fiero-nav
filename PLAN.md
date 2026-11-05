@@ -126,7 +126,9 @@ for VoIP); the current instruction is repeated 1.5 s after the call ends. The ke
 - OSRM demo server: `annotations=speed` works, `annotations=maxspeed` returns `InvalidQuery`, so speed limits
   come only from TomTom.
 - TomTom with a bad key answers 401 `{"code":"Unauthorized","message":…}`; the fallback to OSRM was tested
-  on the phone that way. A real TomTom key hasn't been tested on the phone yet.
+  on the phone that way.
+- With a real key (simulated SF drive): TomTom picked a different route (Bay St) at 21 min vs OSRM's 13 min
+  free-flow, and the guidance screen showed the 30 mph limit sign with the simulator's 38 mph in orange.
 - Call handling is untested on a real call (the phone has no SIM yet).
 - GuideActivity is `singleTop`: a second debug start while guidance is open arrives in `onNewIntent`
   (previously ignored, the old drive kept going).
