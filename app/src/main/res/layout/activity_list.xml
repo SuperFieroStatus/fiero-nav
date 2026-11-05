@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shared by Where to?, Search and route preview: title, optional entry/info line, list, soft keys. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="28dp"
+        android:background="@color/strip_bg"
+        android:ellipsize="end"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="8dp"
+        android:singleLine="true"
+        android:textColor="@color/text"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="start"
+        android:minHeight="30dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="8dp"
+        android:singleLine="true"
+        android:textColor="@color/text"
+        android:textSize="17sp"
+        android:visibility="gone" />
+
+    <dev.mike.fieronav.ui.ListScreen
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <include layout="@layout/soft_keys" />
+</LinearLayout>
