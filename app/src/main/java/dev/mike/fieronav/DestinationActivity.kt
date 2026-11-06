@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
@@ -88,11 +89,11 @@ class DestinationActivity : Activity(), KeyActionHandler {
                             "${Units.duration(r.duration)} · ${Units.distance(r.distance)} · $arrive${if (i == 0) "" else " (alt)"}",
                             "via ${r.summary.ifEmpty { "local roads" }}$traffic",
                         )
-                    } + ListItem("Open in OsmAnd", "Offline navigation", dim = true)
-                    list.setListItems(items)
+                    }
+                    list.setListItems(if (hasOsmAnd()) items + OSMAND_ROW else items)
                 }.onFailure {
                     list.setEmptyText((it.message ?: "No route") + " (OK to retry)")
-                    list.setListItems(listOf(ListItem("Open in OsmAnd", "Offline navigation", dim = true)))
+                    list.setListItems(if (hasOsmAnd()) listOf(OSMAND_ROW) else emptyList())
                 }
             }
         }
@@ -106,6 +107,14 @@ class DestinationActivity : Activity(), KeyActionHandler {
         finish()
     }
 
+    /** The "Open in OsmAnd" row (offline fallback) only shows when OsmAnd is installed. */
+    private fun hasOsmAnd(): Boolean = try {
+        packageManager.getPackageInfo(OSMAND, 0)
+        true
+    } catch (e: PackageManager.NameNotFoundException) {
+        false
+    }
+
     /** OsmAnd's URL API starts its own navigation straight away (uses its downloaded maps). */
     private fun openInOsmAnd() {
         val uri = Uri.parse(
@@ -113,7 +122,7 @@ class DestinationActivity : Activity(), KeyActionHandler {
                 "&dest_name=${Uri.encode(place.name)}&profile=car&force=true",
         )
         try {
-            startActivity(Intent(Intent.ACTION_VIEW, uri).setPackage("net.osmand.plus"))
+            startActivity(Intent(Intent.ACTION_VIEW, uri).setPackage(OSMAND))
             PlaceStore.addRecent(this, place)
         } catch (e: ActivityNotFoundException) {
             say("OsmAnd isn't installed")
@@ -146,6 +155,8 @@ class DestinationActivity : Activity(), KeyActionHandler {
 
     companion object {
         private const val SCREEN = "Destination"
+        private const val OSMAND = "net.osmand.plus"
+        private val OSMAND_ROW = ListItem("Open in OsmAnd", "Offline navigation", dim = true)
         const val EXTRA_NAME = "name"
         const val EXTRA_ADDRESS = "address"
         const val EXTRA_LAT = "lat"
